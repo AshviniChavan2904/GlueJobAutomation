@@ -6,6 +6,12 @@ on:
       - main  # Change this to the branch you want to trigger the action on
     paths:
       - Script1/**  # This assumes your script is in a folder named `script`
+  workflow_dispatch:
+    inputs:
+      run_job:
+        description: 'The name of the Glue script to upload'
+        required: true
+        default: run     
 
 jobs:
   upload:
