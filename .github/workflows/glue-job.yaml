@@ -35,4 +35,4 @@ jobs:
 
       - name: Update Glue Job with New Script
         run: |
-          aws glue update-job --job-name test-job2 --job-update "{\"Command\": {\"Name\": \"glueetl\", \"ScriptLocation\": \"s3://testbucket94927/Scripts/script2.py\", \"PythonVersion\": \"3\"}, \"Role\": \"arn:aws:iam::022608205880:role/test-glue-job\", \"GlueVersion\": \"4.0\"}" --region us-east-1
+          aws glue update-job --job-name test-job --job-update "{\"Command\": {\"Name\": \"glueetl\", \"ScriptLocation\": \"s3://testbucket94927/Scripts/script2.py\", \"PythonVersion\": \"3\"}, \"Role\": \"arn:aws:iam::022608205880:role/test-glue-job\", \"GlueVersion\": \"4.0\"}" --region us-east-1
