@@ -38,9 +38,6 @@ jobs:
           # Get the list of modified files in the push
           MODIFIED_FILES=$(git diff --name-only HEAD^ HEAD)
 
-          # Log modified files for debugging
-          echo "Modified files: $MODIFIED_FILES"          
-
           # Iterate through modified files and update respective Glue jobs
           for file in $MODIFIED_FILES; do
             if [[ ${GLUE_JOBS[$file]} ]]; then
@@ -52,18 +49,9 @@ jobs:
               # Upload the modified script to the corresponding S3 location
               aws s3 cp $file s3://testbucket94927/Scripts/$base_filename
               
-              # Get the current Glue job configuration
-              current_job=$(aws glue get-job --job-name ${GLUE_JOBS[$file]} --query 'Job' --output json)
-
-              # Update the ScriptLocation in the current job configuration
-              updated_job=$(echo $current_job | jq --arg scriptLocation "s3://testbucket94927/Scripts/$base_filename" '
-                .Command.ScriptLocation = $scriptLocation | 
-                del(.Name, .CreatedOn, .LastModifiedOn)  # Exclude fields that should not be updated
-              ')
-
-              # Update the Glue job with the modified configuration
-              aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "$updated_job" --region us-east-1
-
+              # Update the Glue job with the new script location
+              aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "{\"Command\": {\"Name\": \"glueetl\", \"ScriptLocation\": \"s3://testbucket94927/Scripts/$base_filename\", \"PythonVersion\": \"3\"}, \"Role\": \"arn:aws:iam::022608205880:role/test-glue-job\", \"GlueVersion\": \"4.0\"}" --region us-east-1
+              
               # Optionally start the Glue job after updating
               # aws glue start-job-run --job-name ${GLUE_JOBS[$file]} --region us-east-1
             else
