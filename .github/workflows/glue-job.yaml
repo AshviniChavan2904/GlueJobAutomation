@@ -67,7 +67,6 @@ jobs:
                   ExecutionProperty: .ExecutionProperty,
                   MaxRetries: .MaxRetries,
                   Timeout: .Timeout,
-                  MaxCapacity: .MaxCapacity,
                   WorkerType: .WorkerType,
                   NumberOfWorkers: .NumberOfWorkers
                 }
