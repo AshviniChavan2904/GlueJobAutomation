@@ -38,6 +38,9 @@ jobs:
           # Get the list of modified files in the push
           MODIFIED_FILES=$(git diff --name-only HEAD^ HEAD)
 
+          # Log modified files for debugging
+          echo "Modified files: $MODIFIED_FILES"          
+
           # Iterate through modified files and update respective Glue jobs
           for file in $MODIFIED_FILES; do
             if [[ ${GLUE_JOBS[$file]} ]]; then
