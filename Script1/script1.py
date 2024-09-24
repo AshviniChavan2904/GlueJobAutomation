@@ -26,7 +26,7 @@ input_data = glueContext.create_dynamic_frame.from_options(
 )
 
 # Apply transformations (e.g., filtering data where a column 'age' is greater than 25)
-filtered_data = Filter.apply(frame=input_data, f=lambda row: int(row['age']) > 30)
+filtered_data = Filter.apply(frame=input_data, f=lambda row: int(row['age']) > 25)
 
 # Write the transformed data back to S3 as Parquet
 glueContext.write_dynamic_frame.from_options(
