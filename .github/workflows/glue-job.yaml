@@ -41,11 +41,14 @@ jobs:
             if [[ ${GLUE_JOBS[$file]} ]]; then
               echo "Processing $file for Glue job: ${GLUE_JOBS[$file]}"
 
+              # Get the base filename 
+              base_filename=$(basename $file)
+
               # Upload the modified script to the corresponding S3 location
-              aws s3 cp $file s3://testbucket94927/Scripts/$file 
+              aws s3 cp $file s3://testbucket94927/Scripts/$base_filename
               
               # Update the Glue job with the new script location
-              aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "{\"Command\": {\"Name\": \"glueetl\", \"ScriptLocation\": \"s3://testbucket94927/Scripts/$file\", \"PythonVersion\": \"3\"}, \"Role\": \"arn:aws:iam::022608205880:role/test-glue-job\", \"GlueVersion\": \"4.0\"}" --region us-east-1
+              aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "{\"Command\": {\"Name\": \"glueetl\", \"ScriptLocation\": \"s3://testbucket94927/Scripts/$base_filename\", \"PythonVersion\": \"3\"}, \"Role\": \"arn:aws:iam::022608205880:role/test-glue-job\", \"GlueVersion\": \"4.0\"}" --region us-east-1
               
               # Optionally start the Glue job after updating
               # aws glue start-job-run --job-name ${GLUE_JOBS[$file]} --region us-east-1
