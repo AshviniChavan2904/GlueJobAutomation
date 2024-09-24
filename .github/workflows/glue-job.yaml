@@ -58,7 +58,7 @@ jobs:
 
               # Construct the update command with only the fields we want to change
               JOB_UPDATE=$(echo $CURRENT_JOB_CONFIG | jq --arg SCRIPT_LOCATION "s3://testbucket94927/scripts/$base_filename" \
-                '.Command.ScriptLocation = $SCRIPT_LOCATION')
+                'del(.Name, .CreatedOn, .LastModifiedOn) | .Command.ScriptLocation = $SCRIPT_LOCATION')
 
               # Update the Glue job with the new script location
               aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "$JOB_UPDATE" --region us-east-1
