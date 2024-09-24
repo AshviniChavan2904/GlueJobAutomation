@@ -1,11 +1,12 @@
-name: Upload Glue Script to S3
+name: Upload AWS Glue Job
 
 on:
   push:
     branches:
-      - main  # Change this to the branch you want to trigger the action on
+      - main  
     paths:
-      - Script1/**  # This assumes your script is in a folder named `script`
+      - Script1/** 
+      - Script2/**
   workflow_dispatch:
     inputs:
       run_job:
@@ -26,13 +27,42 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  # Set this in GitHub Secrets
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # Set this in GitHub Secrets
-          aws-region: us-west-2  # Change to your desired region
+          aws-region: us-east-1  # Change to your desired region
 
-      - name: Upload Glue Script to S3
+      - name: Check for modified scripts and update Glue jobs
         run: |
-          aws s3 cp Script1/script1.py s3://testbucket94927/Scripts/script1.py
-          aws s3 cp Script2/script2.py s3://testbucket94927/Scripts/script2.py
+          # Define a mapping of script paths to Glue job names
+          declare -A GLUE_JOBS=(
+            ["Script1/script1.py"]="test-job1"
+            ["Script2/script2.py"]="test-job2"
+          )
 
-      - name: Update Glue Job with New Script
-        run: |
-          aws glue update-job --job-name test-job --job-update "{\"Command\": {\"Name\": \"glueetl\", \"ScriptLocation\": \"s3://testbucket94927/Scripts/script1.py\", \"PythonVersion\": \"3\"}, \"Role\": \"arn:aws:iam::022608205880:role/test-glue-job\", \"GlueVersion\": \"4.0\"}" --region us-east-1
+          # Get the list of modified files in the push
+          MODIFIED_FILES=$(git diff --name-only HEAD^)
+
+          # Iterate through modified files and update respective Glue jobs
+          for file in $MODIFIED_FILES; do
+            if [[ ${GLUE_JOBS[$file]} ]]; then
+              echo "Processing $file for Glue job: ${GLUE_JOBS[$file]}"
+
+              # Upload the modified script to the corresponding S3 location
+              aws s3 cp $file s3://testbucket94927/Scripts/$file 
+              
+              # Update the Glue job with the new script location
+              aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "{\"Command\": {\"Name\": \"glueetl\", \"ScriptLocation\": \"s3://testbucket94927/Scripts/$file\", \"PythonVersion\": \"3\"}, \"Role\": \"arn:aws:iam::022608205880:role/test-glue-job\", \"GlueVersion\": \"4.0\"}" --region us-east-1
+              
+              # Optionally start the Glue job after updating
+              # aws glue start-job-run --job-name ${GLUE_JOBS[$file]} --region us-east-1
+            else
+              echo "$file does not have an associated Glue job"
+            fi
+          done
+
+      # - name: Upload Glue Script to S3
+      #   run: |
+      #     aws s3 cp Script1/script1.py s3://testbucket94927/Scripts/script1.py
+      #     aws s3 cp Script2/script2.py s3://testbucket94927/Scripts/script2.py
+
+      # - name: Update Glue Job with New Script
+      #   run: |
+      #     aws glue update-job --job-name test-job --job-update "{\"Command\": {\"Name\": \"glueetl\", \"ScriptLocation\": \"s3://testbucket94927/Scripts/script1.py\", \"PythonVersion\": \"3\"}, \"Role\": \"arn:aws:iam::022608205880:role/test-glue-job\", \"GlueVersion\": \"4.0\"}" --region us-east-1
