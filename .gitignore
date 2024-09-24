@@ -1,2 +1,3 @@
 read.py
 *.csv
+*.snappy.parquet
