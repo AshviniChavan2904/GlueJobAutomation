@@ -6,13 +6,7 @@ on:
       - main  
     paths:
       - Script1/** 
-      - Script2/**
-  workflow_dispatch:
-    inputs:
-      run_job:
-        description: 'The name of the Glue script to upload'
-        required: true
-        default: run     
+      - Script2/**   
 
 jobs:
   upload:
@@ -59,7 +53,7 @@ jobs:
               echo "$file does not have an associated Glue job"
             fi
           done
-          
+
       # - name: Upload Glue Script to S3
       #   run: |
       #     aws s3 cp Script1/script1.py s3://testbucket94927/Scripts/script1.py
