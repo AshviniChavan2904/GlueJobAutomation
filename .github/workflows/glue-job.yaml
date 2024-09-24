@@ -31,6 +31,7 @@ jobs:
           declare -A GLUE_JOBS=(
             ["Script1/script1.py"]="test-job1"
             ["Script2/script2.py"]="test-job2"
+            ["Script3/script3.py"]="test-job"
           )
 
           # Get the list of modified files in the push
@@ -47,9 +48,15 @@ jobs:
               # Upload the modified script to the corresponding S3 location
               aws s3 cp $file s3://testbucket94927/Scripts/$base_filename
               
-              # Update the Glue job with the new script location
-              aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "{\"Command\": {\"Name\": \"glueetl\", \"ScriptLocation\": \"s3://testbucket94927/Scripts/$base_filename\", \"PythonVersion\": \"3\"}, \"Role\": \"arn:aws:iam::022608205880:role/test-glue-job\", \"GlueVersion\": \"4.0\"}" --region us-east-1
-              
+              # Get the current Glue job configuration
+              current_job=$(aws glue get-job --job-name ${GLUE_JOBS[$file]} --query 'Job' --output json)
+
+              # Update the ScriptLocation in the current job configuration
+              updated_job=$(echo $current_job | jq --arg scriptLocation "s3://testbucket94927/scripts/$base_filename" '.Command.ScriptLocation = $scriptLocation')
+
+              # Update the Glue job with the modified configuration
+              aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "$updated_job" --region us-east-1
+                            
               # Optionally start the Glue job after updating
               # aws glue start-job-run --job-name ${GLUE_JOBS[$file]} --region us-east-1
             else
