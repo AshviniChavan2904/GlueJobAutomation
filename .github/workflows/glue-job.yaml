@@ -6,7 +6,8 @@ on:
       - main  
     paths:
       - Script1/** 
-      - Script2/**   
+      - Script2/**  
+      - Script3/** 
 
 jobs:
   upload:
@@ -56,7 +57,7 @@ jobs:
 
               # Update the Glue job with the modified configuration
               aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "$updated_job" --region us-east-1
-                            
+
               # Optionally start the Glue job after updating
               # aws glue start-job-run --job-name ${GLUE_JOBS[$file]} --region us-east-1
             else
