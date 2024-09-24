@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 2        
 
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
@@ -38,7 +40,7 @@ jobs:
           )
 
           # Get the list of modified files in the push
-          MODIFIED_FILES=$(git diff --name-only HEAD^)
+          MODIFIED_FILES=$(git diff --name-only HEAD^ HEAD)
 
           # Iterate through modified files and update respective Glue jobs
           for file in $MODIFIED_FILES; do
@@ -57,7 +59,7 @@ jobs:
               echo "$file does not have an associated Glue job"
             fi
           done
-
+          
       # - name: Upload Glue Script to S3
       #   run: |
       #     aws s3 cp Script1/script1.py s3://testbucket94927/Scripts/script1.py
