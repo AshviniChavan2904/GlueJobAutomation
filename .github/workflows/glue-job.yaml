@@ -21,9 +21,9 @@ jobs:
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  # Set this in GitHub Secrets
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # Set this in GitHub Secrets
-          aws-region: us-east-1  # Change to your desired region
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  
+          aws-region: us-east-1 
 
       - name: Check for modified scripts and update Glue jobs
         run: |
@@ -56,12 +56,3 @@ jobs:
               echo "$file does not have an associated Glue job"
             fi
           done
-
-      # - name: Upload Glue Script to S3
-      #   run: |
-      #     aws s3 cp Script1/script1.py s3://testbucket94927/Scripts/script1.py
-      #     aws s3 cp Script2/script2.py s3://testbucket94927/Scripts/script2.py
-
-      # - name: Update Glue Job with New Script
-      #   run: |
-      #     aws glue update-job --job-name test-job --job-update "{\"Command\": {\"Name\": \"glueetl\", \"ScriptLocation\": \"s3://testbucket94927/Scripts/script1.py\", \"PythonVersion\": \"3\"}, \"Role\": \"arn:aws:iam::022608205880:role/test-glue-job\", \"GlueVersion\": \"4.0\"}" --region us-east-1
