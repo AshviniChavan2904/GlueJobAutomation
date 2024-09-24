@@ -58,20 +58,18 @@ jobs:
               # Update the ScriptLocation in the current job configuration
               updated_job=$(echo $current_job | jq --arg scriptLocation "s3://testbucket94927/Scripts/$base_filename" '
                 { 
-                  JobUpdate: { 
-                    Command: { ScriptLocation: $scriptLocation }, 
-                    Role: .Role, 
-                    DefaultArguments: .DefaultArguments, 
-                    ExecutionProperty: .ExecutionProperty, 
-                    MaxRetries: .MaxRetries, 
-                    Timeout: .Timeout, 
-                    MaxCapacity: .MaxCapacity, 
-                    WorkerType: .WorkerType, 
-                    NumberOfWorkers: .NumberOfWorkers 
-                  } 
+                  Command: { ScriptLocation: $scriptLocation }, 
+                  Role: .Role, 
+                  DefaultArguments: .DefaultArguments, 
+                  ExecutionProperty: .ExecutionProperty, 
+                  MaxRetries: .MaxRetries, 
+                  Timeout: .Timeout, 
+                  MaxCapacity: .MaxCapacity, 
+                  WorkerType: .WorkerType, 
+                  NumberOfWorkers: .NumberOfWorkers 
                 }
               ')
-              
+
               # Update the Glue job with the modified configuration
               aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "$updated_job" --region us-east-1
 
