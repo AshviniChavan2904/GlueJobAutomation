@@ -51,14 +51,17 @@ jobs:
               
               # Fetch the current job configuration
               CURRENT_JOB_CONFIG=$(aws glue get-job --job-name ${GLUE_JOBS[$file]} --query 'Job' --output json)
+              
+              # Print the current job configuration
+              echo "Current Job Configuration for ${GLUE_JOBS[$file]}:"
               echo "$CURRENT_JOB_CONFIG"
 
               # Construct the update command with only the fields we want to change
-              # JOB_UPDATE=$(echo $CURRENT_JOB_CONFIG | jq --arg SCRIPT_LOCATION "s3://testbucket94927/scripts/$base_filename" \
-              #   '.Command.ScriptLocation = $SCRIPT_LOCATION')
+              JOB_UPDATE=$(echo $CURRENT_JOB_CONFIG | jq --arg SCRIPT_LOCATION "s3://testbucket94927/scripts/$base_filename" \
+                '.Command.ScriptLocation = $SCRIPT_LOCATION')
 
               # Update the Glue job with the new script location
-              # aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "$JOB_UPDATE" --region us-east-1
+              aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "$JOB_UPDATE" --region us-east-1
               
               # Optionally start the Glue job after updating
               # aws glue start-job-run --job-name ${GLUE_JOBS[$file]} --region us-east-1
