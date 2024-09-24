@@ -6,8 +6,8 @@ on:
       - main  
     paths:
       - Script1/** 
-      - Script2/**  
-      - Script3/** 
+      - Script2/**
+      - Script3/**
 
 jobs:
   upload:
@@ -17,14 +17,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 2        
+          fetch-depth: 2  # Fetch enough history to compare with the previous commit
 
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  
-          aws-region: us-east-1 
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
       - name: Check for modified scripts and update Glue jobs
         run: |
@@ -43,14 +43,22 @@ jobs:
             if [[ ${GLUE_JOBS[$file]} ]]; then
               echo "Processing $file for Glue job: ${GLUE_JOBS[$file]}"
 
-              # Get the base filename 
+              # Get the base filename (e.g., script1.py, script2.py)
               base_filename=$(basename $file)
 
-              # Upload the modified script to the corresponding S3 location
-              aws s3 cp $file s3://testbucket94927/Scripts/$base_filename
+              # Upload the modified script to the "scripts" folder in S3
+              aws s3 cp $file s3://testbucket94927/scripts/$base_filename
               
+              # Fetch the current job configuration
+              CURRENT_JOB_CONFIG=$(aws glue get-job --job-name ${GLUE_JOBS[$file]} --query 'Job' --output json)
+              echo "$CURRENT_JOB_CONFIG"
+
+              # Construct the update command with only the fields we want to change
+              # JOB_UPDATE=$(echo $CURRENT_JOB_CONFIG | jq --arg SCRIPT_LOCATION "s3://testbucket94927/scripts/$base_filename" \
+              #   '.Command.ScriptLocation = $SCRIPT_LOCATION')
+
               # Update the Glue job with the new script location
-              aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "{\"Command\": {\"Name\": \"glueetl\", \"ScriptLocation\": \"s3://testbucket94927/Scripts/$base_filename\", \"PythonVersion\": \"3\"}, \"Role\": \"arn:aws:iam::022608205880:role/test-glue-job\", \"GlueVersion\": \"4.0\"}" --region us-east-1
+              # aws glue update-job --job-name ${GLUE_JOBS[$file]} --job-update "$JOB_UPDATE" --region us-east-1
               
               # Optionally start the Glue job after updating
               # aws glue start-job-run --job-name ${GLUE_JOBS[$file]} --region us-east-1
