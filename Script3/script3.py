@@ -1,13 +1,11 @@
 import sys
 from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
+from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
-from awsglue.dynamicframe import DynamicFrame
-from pyspark.context import SparkContext
-from pyspark.sql.functions import sum as _sum
 
-# Parse the arguments (you can pass them when you run the job)
+# Parse the arguments (you can pass the job name when you run the job)
 args = getResolvedOptions(sys.argv, ['JOB_NAME'])
 
 # Initialize the SparkContext and GlueContext
@@ -19,32 +17,34 @@ spark = glueContext.spark_session
 job = Job(glueContext)
 job.init(args['JOB_NAME'], args)
 
-# Read data from a specific file in S3
+# Define hardcoded S3 paths
+SOURCE_S3_PATH = "s3://testbucket94927/Input/"
+TARGET_S3_PATH = "s3://testbucket94927/Output/"
+
+# Read data from the specified S3 bucket
 input_data = glueContext.create_dynamic_frame.from_options(
     connection_type="s3", 
-    connection_options={"paths": ["s3://testbucket94927/Input/transactions.csv"]},
+    connection_options={"paths": [SOURCE_S3_PATH]},  # Use the hardcoded path
     format="csv", 
     format_options={"withHeader": True}
 )
 
-# Convert DynamicFrame to Spark DataFrame
-df = input_data.toDF()
+# Show original data count for debugging
+logger = glueContext.get_logger()
+logger.info(f'Original data count: {input_data.count()}')
 
-# Perform transformation: Calculate the total amount spent by each customer
-df_grouped = df.groupBy("customer_id").agg(_sum("transaction_amount").alias("total_spent"))
+# Apply transformations (e.g., filtering out noisy data)
+cleaned_data = Filter.apply(frame=input_data, f=lambda row: row['age'] is not None and 0 <= int(row['age']) <= 100)
 
-# Coalesce to 1 partition for a single output file
-df_single = df_grouped.coalesce(1)
+# Show cleaned data count for debugging
+logger.info(f'Cleaned data count: {cleaned_data.count()}')
 
-# Convert back to DynamicFrame
-output_dynamic_frame = DynamicFrame.fromDF(df_single, glueContext, "output_dynamic_frame")
-
-# Write the transformed data back to S3 as a single Parquet file
+# Write the transformed data back to S3
 glueContext.write_dynamic_frame.from_options(
-    frame=output_dynamic_frame, 
+    frame=cleaned_data, 
     connection_type="s3", 
-    connection_options={"path": "s3://testbucket94927/Output/"},
-    format="parquet"  # Change to parquet format
+    connection_options={"path": TARGET_S3_PATH},  # Use the hardcoded path
+    format="parquet"  # Change the format as needed
 )
 
 # Commit the job
