@@ -32,7 +32,7 @@ jobs:
           declare -A GLUE_JOBS=(
             ["Script1/script1.py"]="test-job1"
             ["Script2/script2.py"]="test-job2"
-            ["Script3/script3.py"]="test-job"
+            ["Script3/script3.py"]="test-job3"
           )
 
           # Get the list of modified files in the push
